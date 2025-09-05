@@ -56,7 +56,7 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
   // Fetch live data for a stock
   const fetchStockData = async (s: Stock): Promise<StockWithComputed> => {
     try {
-      const res = await fetch(`http://localhost:4000/api/stocks/${s.nseBseCode}.NS`).then(r => r.json());
+      const res = await fetch(https://eightbyte.onrender.com/api/stocks/${s.nseBseCode}.NS`).then(r => r.json());
       const cmp = res.cmp || s.purchasePrice;
       const investment = s.purchasePrice * s.quantity;
       const presentValue = cmp * s.quantity;
