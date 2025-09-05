@@ -1,4 +1,3 @@
-// src/context/PortfolioContext.tsx
 import React, { createContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import type { Stock, StockWithComputed } from "../types/portfolio";
@@ -26,7 +25,6 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial portfolio from localStorage or default
   const getInitialStocks = (): Stock[] => {
     const saved = localStorage.getItem("portfolio_stocks");
     if (saved) {
@@ -53,7 +51,6 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
     localStorage.setItem("portfolio_stocks", JSON.stringify(saveList));
   };
 
-  // Fetch live data for a stock
   const fetchStockData = async (s: Stock): Promise<StockWithComputed> => {
     try {
       const res = await fetch(`https://eightbyte.onrender.com/api/stocks/${s.nseBseCode}.NS`).then(r => r.json());
@@ -84,7 +81,7 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-  // Load or refresh data for all stocks
+
   const loadPortfolio = async () => {
     setLoading(true);
     setError(null);
@@ -109,31 +106,31 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-  // Add a new stock
+
   const addStock = (stock: Omit<Stock, "id">) => {
     const newStock: Stock = {
       ...stock,
       id: Date.now().toString(),
     };
 
-    // Save to localStorage
+   
     const current = getInitialStocks();
     const updated = [...current, newStock];
     saveToStorage(updated);
 
-    // Trigger refresh to load live data
-    loadPortfolio(); // Re-fetch all with live data
+ 
+    loadPortfolio(); 
   };
 
-  // Remove a stock
+
   const removeStock = (id: string) => {
     const current = getInitialStocks();
     const updated = current.filter(s => s.id !== id);
     saveToStorage(updated);
-    loadPortfolio(); // Refresh
+    loadPortfolio(); 
   };
 
-  // Initial load
+ 
   useEffect(() => {
     loadPortfolio();
     const interval = setInterval(loadPortfolio, 15000);

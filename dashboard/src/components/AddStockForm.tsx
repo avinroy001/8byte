@@ -1,4 +1,3 @@
-// src/components/AddStockForm.tsx
 import React, { useState, useContext } from "react";
 import { PortfolioContext } from "../context/PortfolioContext";
 
@@ -22,7 +21,7 @@ const AddStockForm: React.FC = () => {
       nseBseCode,
     });
 
-    // Reset form
+
     setName("");
     setSector("");
     setPurchasePrice("");
