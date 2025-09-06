@@ -2,74 +2,94 @@ import React, { useContext } from "react";
 import { PortfolioContext } from "../context/PortfolioContext";
 
 const PortfolioTable: React.FC = () => {
-  const { stocks, loading, error, removeStock } = useContext(PortfolioContext);
+  const { stocks, loading, error } = useContext(PortfolioContext);
+
+  // Group by sector
+  const grouped = stocks.reduce((acc, stock) => {
+    const sector = stock.sector;
+    if (!acc[sector]) acc[sector] = [];
+    acc[sector].push(stock);
+    return acc;
+  }, {} as Record<string, any[]>);
 
   const totalInvestment = stocks.reduce((acc, s) => acc + s.investment, 0);
   const totalValue = stocks.reduce((acc, s) => acc + s.presentValue, 0);
   const totalGainLoss = totalValue - totalInvestment;
 
-  if (loading) return <p className="text-center py-4">Loading portfolio data...</p>;
+  if (loading) return <p className="text-center py-4">Loading...</p>;
   if (error) return <p className="text-red-600 text-center">{error}</p>;
-  if (stocks.length === 0) return <p className="text-center py-4">No stocks in portfolio.</p>;
 
   return (
     <div className="overflow-x-auto shadow rounded-lg">
-      <table className="min-w-full border rounded-lg divide-y divide-gray-200">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2">Action</th>
-            <th className="p-2">Stock</th>
-            <th className="p-2">Purchase Price</th>
-            <th className="p-2">Qty</th>
-            <th className="p-2">Investment</th>
-            <th className="p-2">Portfolio %</th>
-            <th className="p-2">CMP</th>
-            <th className="p-2">Present Value</th>
-            <th className="p-2">Gain/Loss</th>
-            <th className="p-2">P/E Ratio</th>
-            <th className="p-2">Latest Earnings</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stocks.map((s) => (
-            <tr key={s.id} className="text-center border-b hover:bg-gray-50">
-              <td className="p-2">
-                <button
-                  onClick={() => removeStock(s.id)}
-                  className="text-red-600 hover:text-red-800 text-sm font-bold"
-                >
-                  ✕
-                </button>
-              </td>
-              <td className="p-2 font-medium">{s.name}</td>
-              <td className="p-2">{s.purchasePrice.toFixed(2)}</td>
-              <td className="p-2">{s.quantity}</td>
-              <td className="p-2 font-semibold">{s.investment.toFixed(2)}</td>
-              <td className="p-2">{s.portfolioPercent.toFixed(2)}%</td>
-              <td className="p-2">{s.cmp ? s.cmp.toFixed(2) : "N/A"}</td>
-              <td className="p-2 font-semibold">{s.presentValue.toFixed(2)}</td>
-              <td className={`font-bold ${s.gainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {s.gainLoss.toFixed(2)}
-              </td>
-              <td className="p-2">{s.peRatio || "N/A"}</td>
-              <td className="p-2">{s.latestEarnings || "N/A"}</td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="font-bold bg-gray-50">
-            <td colSpan={4} className="p-2 text-right">Total:</td>
-            <td className="p-2">{totalInvestment.toFixed(2)}</td>
-            <td className="p-2">100%</td>
-            <td></td>
-            <td className="p-2">{totalValue.toFixed(2)}</td>
-            <td className={totalGainLoss >= 0 ? "text-green-600" : "text-red-600"}>
-              {totalGainLoss.toFixed(2)}
-            </td>
-            <td colSpan={2}></td>
-          </tr>
-        </tfoot>
-      </table>
+      {Object.entries(grouped).map(([sector, stocksInSector]) => {
+        const inv = stocksInSector.reduce((acc, s) => acc + s.investment, 0);
+        const val = stocksInSector.reduce((acc, s) => acc + s.presentValue, 0);
+        const gl = val - inv;
+
+        return (
+          <div key={sector} className="mb-6">
+            <h3 className="text-lg font-bold bg-gray-100 p-3 rounded-t-lg">
+              {sector} ({stocksInSector.length} stocks)
+            </h3>
+            <table className="min-w-full border border-t-0 rounded-b-lg">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="p-2">Action</th>
+                  <th className="p-2">Stock</th>
+                  <th className="p-2">Purchase</th>
+                  <th>Qty</th>
+                  <th>Investment</th>
+                  <th>%</th>
+                  <th>CMP</th>
+                  <th>Value</th>
+                  <th>Gain/Loss</th>
+                  <th>P/E</th>
+                  <th>Earnings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stocksInSector.map((s) => (
+                  <tr key={s.id} className="text-center border-b hover:bg-gray-50">
+                    <td className="p-2">
+                      <button onClick={() => removeStock(s.id)} className="text-red-600">✕</button>
+                    </td>
+                    <td className="p-2 font-medium">{s.name}</td>
+                    <td>{s.purchasePrice.toFixed(2)}</td>
+                    <td>{s.quantity}</td>
+                    <td>{s.investment.toFixed(2)}</td>
+                    <td>{((s.investment / totalInvestment) * 100).toFixed(2)}%</td>
+                    <td>{s.cmp?.toFixed(2)}</td>
+                    <td>{s.presentValue.toFixed(2)}</td>
+                    <td className={s.gainLoss >= 0 ? "text-green-600" : "text-red-600"}>
+                      {s.gainLoss.toFixed(2)}
+                    </td>
+                    <td>{s.peRatio}</td>
+                    <td>{s.latestEarnings}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Sector Summary */}
+            <div className="bg-gray-100 p-3 text-sm font-semibold">
+              <strong>{sector} Total:</strong> Invested: ₹{inv.toFixed(2)} | 
+              Value: ₹{val.toFixed(2)} | 
+              <span className={gl >= 0 ? "text-green-600" : "text-red-600"}>
+                {" "}Gain/Loss: ₹{gl.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Overall Summary */}
+      <div className="mt-6 bg-gray-200 p-4 font-bold rounded">
+        <strong>Overall Total:</strong> Invested: ₹{totalInvestment.toFixed(2)} | 
+        Value: ₹{totalValue.toFixed(2)} | 
+        <span className={totalGainLoss >= 0 ? "text-green-600" : "text-red-600"}>
+          {" "}Gain/Loss: ₹{totalGainLoss.toFixed(2)}
+        </span>
+      </div>
     </div>
   );
 };
