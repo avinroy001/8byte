@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { PortfolioContext } from "../context/PortfolioContext";
 
 const PortfolioTable: React.FC = () => {
-  const { stocks, loading, error } = useContext(PortfolioContext);
+  const { stocks, loading, error, removeStock } = useContext(PortfolioContext);
 
   // Group by sector
   const grouped = stocks.reduce((acc, stock) => {
